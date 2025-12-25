@@ -3,65 +3,140 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Stop building a distributed scheduler for a problem that isn't distributed. Just fucking use cron." />
+  <meta name="description" content="Stop building a distributed scheduler for a problem that isn’t distributed. Just fucking use cron." />
+  <meta name="theme-color" content="#0b0b0b" />
   <title>Just Fucking Use Cron</title>
 
   <style>
     :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      line-height: 1.5;
+      line-height: 1.55;
+      letter-spacing: 0.1px;
     }
+
     main {
-      max-width: 780px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 56px 20px 80px;
+      padding: 64px 20px 96px;
     }
-    h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0 0 8px; }
-    .sub { font-size: 1.1rem; opacity: 0.85; margin: 0 0 28px; }
+
+    h1 {
+      font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+      margin: 0 0 10px;
+    }
+
+    .sub {
+      font-size: 1.15rem;
+      opacity: 0.85;
+      margin: 0 0 28px;
+      max-width: 60ch;
+    }
+
+    .pillrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 14px; }
+    .pill {
+      display: inline-block;
+      padding: 8px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(127,127,127,0.45);
+      opacity: 0.95;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
     .callout {
       border: 1px solid rgba(127,127,127,0.35);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px 16px;
       margin: 22px 0;
+      background: rgba(127,127,127,0.06);
     }
-    h2 { margin: 34px 0 10px; font-size: 1.35rem; }
+
+    .callout strong { display: inline-block; margin-bottom: 6px; }
+
+    h2 {
+      margin: 38px 0 12px;
+      font-size: 1.45rem;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    p { margin: 10px 0; }
     ul { margin: 10px 0 0 20px; }
     li { margin: 8px 0; }
+
     code, pre {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+
     pre {
       border: 1px solid rgba(127,127,127,0.35);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px 14px;
       overflow-x: auto;
       margin: 12px 0;
+      background: rgba(127,127,127,0.06);
     }
+
     .grid {
       display: grid;
       gap: 14px;
       grid-template-columns: 1fr;
+      margin-top: 14px;
     }
-    @media (min-width: 720px) {
+
+    @media (min-width: 780px) {
       .grid { grid-template-columns: 1fr 1fr; }
     }
+
     .card {
       border: 1px solid rgba(127,127,127,0.35);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px 14px;
+      background: rgba(127,127,127,0.04);
     }
-    .small { font-size: 0.95rem; opacity: 0.85; }
+
+    .small { font-size: 0.98rem; opacity: 0.85; }
+
     a { text-decoration: none; }
     a:hover { text-decoration: underline; }
-    footer { margin-top: 44px; opacity: 0.8; font-size: 0.95rem; }
+
     .btnrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 8px; }
     .btn {
       display: inline-block;
       padding: 10px 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid rgba(127,127,127,0.45);
+      background: rgba(127,127,127,0.04);
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background: rgba(127,127,127,0.3);
+      margin: 34px 0;
+    }
+
+    footer {
+      margin-top: 52px;
+      opacity: 0.82;
+      font-size: 0.98rem;
+    }
+
+    .fineprint { opacity: 0.75; font-size: 0.95rem; margin-top: 10px; }
+
+    .quote {
+      border-left: 4px solid rgba(127,127,127,0.5);
+      padding-left: 12px;
+      opacity: 0.9;
+      margin: 14px 0;
     }
   </style>
 </head>
@@ -69,108 +144,153 @@
 <body>
   <main>
     <h1>Just Fucking Use Cron.</h1>
-    <p class="sub">Stop building a distributed scheduler for a problem that isn’t distributed.</p>
+    <p class="sub">
+      You do not need a distributed workflow orchestration platform with a mascot.
+      You need a schedule and a command. Calm down.
+    </p>
+
+    <div class="pillrow">
+      <span class="pill">✅ boring</span>
+      <span class="pill">✅ cheap</span>
+      <span class="pill">✅ debuggable</span>
+      <span class="pill">✅ older than your framework</span>
+    </div>
 
     <div class="callout">
-      <strong>Rule of thumb:</strong> If “a job runs every X minutes” is your requirement, you don’t need a workflow engine.
-      You need a schedule, a command, logs, retries (maybe), and an alert if it breaks.
+      <strong>Golden rule:</strong>
+      If your requirement is “run this thing every X minutes,” your requirement is not “adopt a whole new religion.”
+      Your requirement is <em>a timer</em>.
+      <div class="fineprint">Yes, even if you call it “orchestration” to feel important.</div>
     </div>
 
     <div class="btnrow">
-      <a class="btn" href="#examples">Show me examples</a>
-      <a class="btn" href="#notcron">When cron is not enough</a>
+      <a class="btn" href="#examples">Examples</a>
       <a class="btn" href="#checklist">Sanity checklist</a>
+      <a class="btn" href="#notcron">When cron isn’t enough</a>
     </div>
 
     <h2>What cron is great at</h2>
     <ul>
-      <li>Run something at a specific time (daily, hourly, every 5 minutes).</li>
-      <li>Kick off maintenance tasks: cleanup, rollups, exports, backups.</li>
-      <li>Send a report, run a script, ping an endpoint, rotate logs.</li>
-      <li>Do boring automation without inventing an architecture diagram.</li>
+      <li>Daily/weekly/hourly jobs that do one thing and then leave.</li>
+      <li>Cleanup, rollups, exports, backups, “send the report,” “rotate the logs.”</li>
+      <li>“Call this URL every 10 minutes because the business said so.”</li>
+      <li>Giving you a schedule without gifting you a new on-call nightmare.</li>
     </ul>
 
-    <h2>What you’re probably doing wrong</h2>
+    <h2>What you’re probably doing instead (and why it’s dumb)</h2>
     <div class="grid">
       <div class="card">
         <strong>You built “a scheduler” inside your app.</strong>
-        <p class="small">Now deployments, crashes, and scaling change your schedule. Congrats: you reinvented cron badly.</p>
+        <p class="small">
+          Now deployments, crashes, and scaling change your schedule.
+          You reinvented cron, but with more bugs and fewer memes.
+        </p>
       </div>
+
       <div class="card">
         <strong>You added a workflow platform.</strong>
-        <p class="small">Because you needed “run this daily” and accidentally bought a new religion.</p>
+        <p class="small">
+          Because you needed “run this daily.”
+          You responded by adopting twelve new concepts and a Slack channel.
+        </p>
       </div>
+
       <div class="card">
         <strong>You run jobs on every instance.</strong>
-        <p class="small">Now “daily email” sends 6 times. Use a single runner or a lock. Or… cron on one box.</p>
+        <p class="small">
+          Now your “daily email” sends six times.
+          That’s not “high availability.” That’s “I hate my users.”
+        </p>
       </div>
+
       <div class="card">
         <strong>You have no alerts.</strong>
-        <p class="small">The job failed three weeks ago and you only noticed when finance asked where the report went.</p>
+        <p class="small">
+          The job failed three weeks ago and you only noticed when finance asked where the report went.
+          Congrats on your “observability journey.”
+        </p>
       </div>
     </div>
 
-    <h2 id="examples">Examples</h2>
-    <p class="small">Pick one approach. Keep it boring.</p>
+    <hr/>
 
-    <h3>1) Classic crontab</h3>
-    <pre><code># Edit your crontab
+    <h2 id="examples">Examples</h2>
+    <p class="small">Pick one. Keep it boring. Get back to shipping.</p>
+
+    <h3>1) Classic crontab (it’s still fine)</h3>
+    <pre><code># edit your crontab like a civilized person
 crontab -e
 
-# Run every day at 02:15
-15 2 * * * /usr/local/bin/my-report --yesterday &gt;&gt; /var/log/my-report.log 2&gt;&amp;1
+# run every day at 02:15
+15 2 * * * /usr/local/bin/my-report --yesterday >> /var/log/my-report.log 2>&1
 
-# Run every 5 minutes
-*/5 * * * * /usr/local/bin/ping-healthcheck &gt;&gt; /var/log/ping.log 2&gt;&amp;1</code></pre>
+# run every 5 minutes
+*/5 * * * * /usr/local/bin/ping-healthcheck >> /var/log/ping.log 2>&1</code></pre>
 
-    <h3>2) systemd timers (cron, but modern)</h3>
-    <pre><code># Great if you want journal logs, dependencies, and easy status checks.
-# Create:
-# - /etc/systemd/system/my-job.service
-# - /etc/systemd/system/my-job.timer
+    <h3>2) systemd timers (cron, but with status + logs)</h3>
+    <pre><code># systemd timers are great if you want:
+# - journal logs
+# - easy status checks
+# - dependencies
 #
-# Then:
+# create:
+#   /etc/systemd/system/my-job.service
+#   /etc/systemd/system/my-job.timer
+#
+# then:
 systemctl enable --now my-job.timer
 systemctl status my-job.timer</code></pre>
 
-    <h3>3) One-liner: curl a webhook</h3>
-    <pre><code># Trigger an endpoint every hour
-0 * * * * curl -fsS https://example.com/jobs/hourly &gt;&gt; /var/log/hourly.log 2&gt;&amp;1</code></pre>
+    <h3>3) Cron + webhook (yes, you can be “serverless” too)</h3>
+    <pre><code># trigger an endpoint every hour
+0 * * * * curl -fsS https://example.com/jobs/hourly >> /var/log/hourly.log 2>&1</code></pre>
 
-    <h2 id="checklist">Sanity checklist (read this before shipping a “scheduler”)</h2>
+    <div class="quote">
+      “But we use X cloud scheduler.” Cool. That’s cron with marketing.
+      The point is: stop building a cathedral to run a script.
+    </div>
+
+    <h2 id="checklist">Sanity checklist (before you invent a platform)</h2>
     <ul>
-      <li><strong>Can this job run twice safely?</strong> If not, make it idempotent or add a lock.</li>
-      <li><strong>Where do logs go?</strong> File, syslog, journal—pick one and keep it consistent.</li>
-      <li><strong>What happens on failure?</strong> Retry? Backoff? Alert? Don’t silently fail.</li>
-      <li><strong>Who gets paged?</strong> If nobody gets notified, it doesn’t exist.</li>
-      <li><strong>Is there exactly one runner?</strong> One host, or one “job runner” container, or a leader lock.</li>
+      <li><strong>Idempotent?</strong> Can it run twice without ruining everything? If not: fix that first.</li>
+      <li><strong>Exactly one runner?</strong> One host, one “job runner” container, or a leader lock. Not “hope.”</li>
+      <li><strong>Logs?</strong> Where do they go, and can a human find them in 30 seconds?</li>
+      <li><strong>Failures?</strong> Retry (carefully) or alert. “Silently ignore” is not a strategy.</li>
+      <li><strong>Alerts?</strong> If nobody gets notified, it didn’t happen. It’s folklore.</li>
+      <li><strong>Timeouts?</strong> Jobs that run forever are just services with commitment issues.</li>
     </ul>
 
-    <h2 id="notcron">When cron is not enough</h2>
-    <p>Be honest. Cron isn’t magic. Use something heavier only when you <em>actually</em> need it:</p>
+    <h2 id="notcron">When cron isn’t enough</h2>
+    <p>Rare, but real. Use heavier tools only when you <em>actually</em> need them:</p>
     <ul>
-      <li><strong>Long-running workflows</strong> with human steps, approvals, or multi-stage state machines.</li>
-      <li><strong>Massive fan-out</strong> where you truly need distributed orchestration and backpressure.</li>
-      <li><strong>Exactly-once semantics</strong> across multiple systems (rare, expensive, and usually a lie).</li>
-      <li><strong>Per-tenant scheduling at scale</strong> (thousands/millions of individual schedules).</li>
+      <li><strong>Long-running workflows</strong> with state machines, human approvals, or multi-step coordination.</li>
+      <li><strong>Massive fan-out</strong> where you need distributed backpressure and orchestration.</li>
+      <li><strong>Per-tenant scheduling at huge scale</strong> (thousands/millions of independent schedules).</li>
+      <li><strong>Exactly-once across systems</strong> (expensive, tricky, and frequently a lie).</li>
     </ul>
 
     <div class="callout">
-      <strong>Translation:</strong> If you can describe your “workflow” as “run this command on a schedule,”
-      you’re not building a workflow. You’re scheduling a job. Just fucking use cron.
+      <strong>Translation:</strong>
+      If you can describe your “workflow” as “run this command on a schedule,”
+      you are not building a workflow. You are scheduling a job.
+      <br/><br/>
+      Just fucking use cron.
     </div>
 
-    <h2>FAQ (for the bikeshedders)</h2>
+    <h2>FAQ (for the professional arguers)</h2>
     <ul>
-      <li><strong>“Cron isn’t reliable.”</strong> Your infrastructure isn’t reliable. Cron is fine. Add monitoring.</li>
-      <li><strong>“But we’re serverless.”</strong> Great. Schedule one function. You still don’t need a platform.</li>
-      <li><strong>“What about retries?”</strong> Make the job idempotent, then retry responsibly. Or alert a human.</li>
-      <li><strong>“What about locking?”</strong> File locks, DB locks, leader election—pick the simplest thing that works.</li>
+      <li><strong>“Cron isn’t reliable.”</strong> Your infrastructure isn’t reliable. Add monitoring. Also: skill issue.</li>
+      <li><strong>“But retries!”</strong> Make it idempotent. Then retry. Or alert. Humans exist.</li>
+      <li><strong>“But locking!”</strong> File lock, DB lock, leader election. Choose the simplest one you can explain without a whiteboard.</li>
+      <li><strong>“But we’re serverless!”</strong> Cool. Use a scheduler service. That’s still cron. You didn’t transcend physics.</li>
+      <li><strong>“But we need observability!”</strong> Great. Start by logging and paging on failure. Not by buying a new dashboard for vibes.</li>
     </ul>
 
     <footer>
-      Built to end arguments and ship work.<br/>
-      Want to contribute? Add examples, not frameworks.
+      Built to end arguments and ship work.
+      <div class="fineprint">
+        If this page made you mad, it’s because you’re about to schedule a shell script with a distributed system.
+      </div>
     </footer>
   </main>
 </body>
