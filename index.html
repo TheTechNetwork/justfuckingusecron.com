@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Stop building a distributed scheduler for a problem that isn't distributed. Just fucking use cron." />
+  <title>Just Fucking Use Cron</title>
+
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+    }
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 56px 20px 80px;
+    }
+    h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0 0 8px; }
+    .sub { font-size: 1.1rem; opacity: 0.85; margin: 0 0 28px; }
+    .callout {
+      border: 1px solid rgba(127,127,127,0.35);
+      border-radius: 12px;
+      padding: 16px 16px;
+      margin: 22px 0;
+    }
+    h2 { margin: 34px 0 10px; font-size: 1.35rem; }
+    ul { margin: 10px 0 0 20px; }
+    li { margin: 8px 0; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    pre {
+      border: 1px solid rgba(127,127,127,0.35);
+      border-radius: 12px;
+      padding: 14px 14px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      border: 1px solid rgba(127,127,127,0.35);
+      border-radius: 12px;
+      padding: 14px 14px;
+    }
+    .small { font-size: 0.95rem; opacity: 0.85; }
+    a { text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 44px; opacity: 0.8; font-size: 0.95rem; }
+    .btnrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 8px; }
+    .btn {
+      display: inline-block;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(127,127,127,0.45);
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Just Fucking Use Cron.</h1>
+    <p class="sub">Stop building a distributed scheduler for a problem that isn’t distributed.</p>
+
+    <div class="callout">
+      <strong>Rule of thumb:</strong> If “a job runs every X minutes” is your requirement, you don’t need a workflow engine.
+      You need a schedule, a command, logs, retries (maybe), and an alert if it breaks.
+    </div>
+
+    <div class="btnrow">
+      <a class="btn" href="#examples">Show me examples</a>
+      <a class="btn" href="#notcron">When cron is not enough</a>
+      <a class="btn" href="#checklist">Sanity checklist</a>
+    </div>
+
+    <h2>What cron is great at</h2>
+    <ul>
+      <li>Run something at a specific time (daily, hourly, every 5 minutes).</li>
+      <li>Kick off maintenance tasks: cleanup, rollups, exports, backups.</li>
+      <li>Send a report, run a script, ping an endpoint, rotate logs.</li>
+      <li>Do boring automation without inventing an architecture diagram.</li>
+    </ul>
+
+    <h2>What you’re probably doing wrong</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>You built “a scheduler” inside your app.</strong>
+        <p class="small">Now deployments, crashes, and scaling change your schedule. Congrats: you reinvented cron badly.</p>
+      </div>
+      <div class="card">
+        <strong>You added a workflow platform.</strong>
+        <p class="small">Because you needed “run this daily” and accidentally bought a new religion.</p>
+      </div>
+      <div class="card">
+        <strong>You run jobs on every instance.</strong>
+        <p class="small">Now “daily email” sends 6 times. Use a single runner or a lock. Or… cron on one box.</p>
+      </div>
+      <div class="card">
+        <strong>You have no alerts.</strong>
+        <p class="small">The job failed three weeks ago and you only noticed when finance asked where the report went.</p>
+      </div>
+    </div>
+
+    <h2 id="examples">Examples</h2>
+    <p class="small">Pick one approach. Keep it boring.</p>
+
+    <h3>1) Classic crontab</h3>
+    <pre><code># Edit your crontab
+crontab -e
+
+# Run every day at 02:15
+15 2 * * * /usr/local/bin/my-report --yesterday &gt;&gt; /var/log/my-report.log 2&gt;&amp;1
+
+# Run every 5 minutes
+*/5 * * * * /usr/local/bin/ping-healthcheck &gt;&gt; /var/log/ping.log 2&gt;&amp;1</code></pre>
+
+    <h3>2) systemd timers (cron, but modern)</h3>
+    <pre><code># Great if you want journal logs, dependencies, and easy status checks.
+# Create:
+# - /etc/systemd/system/my-job.service
+# - /etc/systemd/system/my-job.timer
+#
+# Then:
+systemctl enable --now my-job.timer
+systemctl status my-job.timer</code></pre>
+
+    <h3>3) One-liner: curl a webhook</h3>
+    <pre><code># Trigger an endpoint every hour
+0 * * * * curl -fsS https://example.com/jobs/hourly &gt;&gt; /var/log/hourly.log 2&gt;&amp;1</code></pre>
+
+    <h2 id="checklist">Sanity checklist (read this before shipping a “scheduler”)</h2>
+    <ul>
+      <li><strong>Can this job run twice safely?</strong> If not, make it idempotent or add a lock.</li>
+      <li><strong>Where do logs go?</strong> File, syslog, journal—pick one and keep it consistent.</li>
+      <li><strong>What happens on failure?</strong> Retry? Backoff? Alert? Don’t silently fail.</li>
+      <li><strong>Who gets paged?</strong> If nobody gets notified, it doesn’t exist.</li>
+      <li><strong>Is there exactly one runner?</strong> One host, or one “job runner” container, or a leader lock.</li>
+    </ul>
+
+    <h2 id="notcron">When cron is not enough</h2>
+    <p>Be honest. Cron isn’t magic. Use something heavier only when you <em>actually</em> need it:</p>
+    <ul>
+      <li><strong>Long-running workflows</strong> with human steps, approvals, or multi-stage state machines.</li>
+      <li><strong>Massive fan-out</strong> where you truly need distributed orchestration and backpressure.</li>
+      <li><strong>Exactly-once semantics</strong> across multiple systems (rare, expensive, and usually a lie).</li>
+      <li><strong>Per-tenant scheduling at scale</strong> (thousands/millions of individual schedules).</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Translation:</strong> If you can describe your “workflow” as “run this command on a schedule,”
+      you’re not building a workflow. You’re scheduling a job. Just fucking use cron.
+    </div>
+
+    <h2>FAQ (for the bikeshedders)</h2>
+    <ul>
+      <li><strong>“Cron isn’t reliable.”</strong> Your infrastructure isn’t reliable. Cron is fine. Add monitoring.</li>
+      <li><strong>“But we’re serverless.”</strong> Great. Schedule one function. You still don’t need a platform.</li>
+      <li><strong>“What about retries?”</strong> Make the job idempotent, then retry responsibly. Or alert a human.</li>
+      <li><strong>“What about locking?”</strong> File locks, DB locks, leader election—pick the simplest thing that works.</li>
+    </ul>
+
+    <footer>
+      Built to end arguments and ship work.<br/>
+      Want to contribute? Add examples, not frameworks.
+    </footer>
+  </main>
+</body>
+</html>
